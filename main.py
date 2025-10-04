@@ -3,6 +3,9 @@ import pygame as pg
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 720, 720
 DISPLAY_WIDTH, DISPLAY_HEIGHT = 180, 180
+ENEMY_SPEED = 2
+PLAYER_SPEED = 100
+
 
 def animate(key: float, length: int, frame_speed: float) -> float:
     key += frame_speed
@@ -15,19 +18,17 @@ def get_rect(surf: pg.Surface, pos: pg.Vector2 | List[int]) -> pg.Rect:
     return surf.get_rect(center=pos)
 
 
-def enemy_movement(enemy_pos: List[int], dir: int) -> None:
-
+def enemy_movement(enemy_pos: List[int], delta: float, dir: int) -> None:
     for idx in range(len(enemy_pos)):
-        enemy_pos[idx][0] += dir
-
+        enemy_pos[idx][0] += dir * delta
 
 
 def player_movement(pos: pg.Vector2, delta: float, player: pg.Surface) -> None:
     keys = pg.key.get_pressed()
     if keys[pg.K_a]:
-        pos.x -= 100 * delta
+        pos.x -= PLAYER_SPEED * delta
     if keys[pg.K_d]:
-        pos.x += 100 * delta
+        pos.x += PLAYER_SPEED * delta
 
     if pos.x <= player.size[0] // 2:
         pos.x = player.size[0] // 2
@@ -53,10 +54,8 @@ def main() -> None:
         [(i * 16) + 10, 0] for i in range(11)
     ]  # [(x1, frame1)]
     enemy_y = 20, 35
-    enemy2_pos: List[List[int]] = [
-        [(i * 16) + 10, 0] for i in range(11)
-    ]
-    enemy_right= True
+    enemy2_pos: List[List[int]] = [[(i * 16) + 10, 0] for i in range(11)]
+    enemy_right = True
     enemy_dir = 0.0
 
     defense: List[pg.Surface] = [
@@ -93,17 +92,16 @@ def main() -> None:
         display.blit(
             player[int(player_key)], get_rect(player[int(player_key)], player_pos)
         )
-        
-        
+
         if enemy1_pos[0][0] <= enemy1.size[0] // 2:
             enemy_right = True
         elif enemy1_pos[-1][0] >= DISPLAY_WIDTH - enemy1.size[0] // 2:
             enemy_right = False
-        
-        enemy_dir = 0.02 if enemy_right else -0.02
-        
-        enemy_movement(enemy1_pos, enemy_dir)
-        enemy_movement(enemy2_pos, enemy_dir)
+
+        enemy_dir = ENEMY_SPEED if enemy_right else -ENEMY_SPEED
+
+        enemy_movement(enemy1_pos, delta, enemy_dir)
+        enemy_movement(enemy2_pos, delta, enemy_dir)
         player_movement(player_pos, delta, player[int(player_key)])
 
         screen.blit(pg.transform.scale(display, screen.size), (0, 0))
