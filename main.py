@@ -3,7 +3,7 @@ import pygame as pg
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 720, 720
 DISPLAY_WIDTH, DISPLAY_HEIGHT = 180, 180
-ENEMY_SPEED = 2
+ENEMY_SPEED = 1.5
 PLAYER_SPEED = 100
 
 
@@ -18,9 +18,9 @@ def get_rect(surf: pg.Surface, pos: pg.Vector2 | List[int]) -> pg.Rect:
     return surf.get_rect(center=pos)
 
 
-def enemy_movement(enemy_pos: List[int], delta: float, dir: int) -> None:
+def enemy_movement(enemy_pos: List[List[int]], delta: float, direction: int) -> None:
     for idx in range(len(enemy_pos)):
-        enemy_pos[idx][0] += dir * delta
+        enemy_pos[idx][0] += direction * delta
 
 
 def player_movement(pos: pg.Vector2, delta: float, player: pg.Surface) -> None:
