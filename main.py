@@ -53,10 +53,9 @@ def main() -> None:
     enemy1_pos: List[List[int]] = [
         [(i * 16) + 10, 0] for i in range(11)
     ]  # [(x1, frame1)]
-    enemy_y = 20, 35
+    enemy_y = [20, 35]
     enemy2_pos: List[List[int]] = [[(i * 16) + 10, 0] for i in range(11)]
     enemy_right = True
-    enemy_dir = 0.0
 
     defense: List[pg.Surface] = [
         pg.image.load("assets/images/defense/1.png"),
@@ -92,11 +91,14 @@ def main() -> None:
         display.blit(
             player[int(player_key)], get_rect(player[int(player_key)], player_pos)
         )
-
         if enemy1_pos[0][0] <= enemy1.size[0] // 2:
             enemy_right = True
+            for i in range(len(enemy_y)):
+                enemy_y[i] += 1
         elif enemy1_pos[-1][0] >= DISPLAY_WIDTH - enemy1.size[0] // 2:
             enemy_right = False
+            for i in range(len(enemy_y)):
+                enemy_y[i] += 1
 
         enemy_dir = ENEMY_SPEED if enemy_right else -ENEMY_SPEED
 
