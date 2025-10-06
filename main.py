@@ -1,5 +1,10 @@
 from typing import List
 import pygame as pg
+from random import randint
+
+
+# 1. TODO: scrolling background parallax
+# 2. TODO: Collision
 
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 720, 720
@@ -25,9 +30,14 @@ def enemy_movement(enemy_pos: List[List[int]], delta: float, direction: int) -> 
         enemy_pos[idx][0] += direction * delta
 
 
-def bullet_movement(bullet_pos: List[pg.Vector2], delta: float) -> None:
+def player_bullet_movement(bullet_pos: List[pg.Vector2], delta: float) -> None:
     for pos in bullet_pos:
         pos.y -= BULLET_SPEED * delta
+
+
+def enemy_bullet_movement(bullet_pos: List[pg.Vector2], delta: float) -> None:
+    for pos in bullet_pos:
+        pos.y += BULLET_SPEED * delta
 
 
 def player_movement(pos: pg.Vector2, delta: float, player: pg.Surface) -> None:
@@ -49,6 +59,8 @@ def main() -> None:
     display = pg.Surface((DISPLAY_WIDTH, DISPLAY_HEIGHT))
     clock = pg.Clock()
     running = True
+
+    # background = pg.image.load("assets/images/background.png")
 
     # Player
     player: List[pg.Surface] = [
@@ -82,8 +94,12 @@ def main() -> None:
     defense_key = 0
 
     # Bullet
-    bullet: pg.Surface = pg.image.load("assets/images/bullet.png")
-    bullets_pos: List[pg.Vector2] = list()
+    player_bullet: pg.Surface = pg.image.load("assets/images/bullet/2.png")
+    enemy_bullet: pg.Surface = pg.image.load("assets/images/bullet/1.png")
+    player_bullets_pos: List[pg.Vector2] = list()
+    enemy_bullets_pos: List[pg.Vector2] = list()
+    enemy_shoot = pg.USEREVENT + 1
+    pg.time.set_timer(enemy_shoot, 1000)
 
     while running:
         delta = clock.tick(60) / 1000
@@ -91,12 +107,21 @@ def main() -> None:
             if event.type == pg.QUIT:
                 running = False
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                
-                bullets_pos.append(player_pos.copy())
+                player_bullets_pos.append(player_pos.copy())
+            if event.type == enemy_shoot:
+                pos = pg.Vector2(enemy1_pos[randint(0, len(enemy1_pos)-1)][0], enemy_y[0])
+                enemy_bullets_pos.append(pos)
 
         display.fill((0, 0, 0))
 
         player_key = animate(player_key, len(player), 0.1)
+
+        # Bullet render
+        for pos in player_bullets_pos:
+            display.blit(player_bullet, get_rect(player_bullet, pos))
+        
+        for pos in enemy_bullets_pos:
+            display.blit(enemy_bullet, get_rect(enemy_bullet, pos))
 
         # Enemy 1 render
         for pos in enemy1_pos:
@@ -106,18 +131,14 @@ def main() -> None:
         for pos in enemy2_pos:
             display.blit(enemy2, get_rect(enemy2, [pos[0], enemy_y[1]]))
 
-        # Defence render
-        for pos in defense_pos:
-            display.blit(defense[defense_key], get_rect(defense[defense_key], pos[:2]))
-
-        # Bullet render
-        for pos in bullets_pos:
-            display.blit(bullet, get_rect(bullet, pos))
-
         # Player render
         display.blit(
             player[int(player_key)], get_rect(player[int(player_key)], player_pos)
         )
+
+        # Defence render
+        for pos in defense_pos:
+            display.blit(defense[defense_key], get_rect(defense[defense_key], pos[:2]))
 
         if enemy1_pos[0][0] <= enemy1.size[0] // 2:
             enemy_right = True
@@ -130,7 +151,8 @@ def main() -> None:
 
         enemy_dir = ENEMY_SPEED if enemy_right else -ENEMY_SPEED
 
-        bullet_movement(bullets_pos, delta)
+        player_bullet_movement(player_bullets_pos, delta)
+        enemy_bullet_movement(enemy_bullets_pos, delta)
         enemy_movement(enemy1_pos, delta, enemy_dir)
         enemy_movement(enemy2_pos, delta, enemy_dir)
         player_movement(player_pos, delta, player[int(player_key)])
