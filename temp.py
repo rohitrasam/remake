@@ -8,8 +8,9 @@ def temp(b, c):
 
 
 
-a = Vector2(2, 3)
+a = Vector2(2, 4)
 b = [3, 2]
 print(a, b)
 temp(a, b)
 print(a, b)
+print(a.xxyyx)

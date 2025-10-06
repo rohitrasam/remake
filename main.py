@@ -1,10 +1,12 @@
 from typing import List
 import pygame as pg
 
+
 SCREEN_WIDTH, SCREEN_HEIGHT = 720, 720
 DISPLAY_WIDTH, DISPLAY_HEIGHT = 180, 180
 ENEMY_SPEED = 1.5
 PLAYER_SPEED = 100
+BULLET_SPEED = 300
 
 
 def animate(key: float, length: int, frame_speed: float) -> float:
@@ -21,6 +23,11 @@ def get_rect(surf: pg.Surface, pos: pg.Vector2 | List[int]) -> pg.Rect:
 def enemy_movement(enemy_pos: List[List[int]], delta: float, direction: int) -> None:
     for idx in range(len(enemy_pos)):
         enemy_pos[idx][0] += direction * delta
+
+
+def bullet_movement(bullet_pos: List[pg.Vector2], delta: float) -> None:
+    for pos in bullet_pos:
+        pos.y -= BULLET_SPEED * delta
 
 
 def player_movement(pos: pg.Vector2, delta: float, player: pg.Surface) -> None:
@@ -41,6 +48,8 @@ def main() -> None:
     display = pg.Surface((DISPLAY_WIDTH, DISPLAY_HEIGHT))
     clock = pg.Clock()
     running = True
+
+    # Player
     player: List[pg.Surface] = [
         pg.transform.rotate(pg.image.load("assets/images/player/1.png"), 90),
         pg.transform.rotate(pg.image.load("assets/images/player/2.png"), 90),
@@ -48,6 +57,7 @@ def main() -> None:
     player_key = 0
     player_pos = pg.Vector2(90, 165)
 
+    # Enemy
     enemy1: pg.Surface = pg.image.load("assets/images/enemy/1.png")
     enemy2: pg.Surface = pg.image.load("assets/images/enemy/2.png")
     enemy1_pos: List[List[int]] = [
@@ -57,6 +67,7 @@ def main() -> None:
     enemy2_pos: List[List[int]] = [[(i * 16) + 10, 0] for i in range(11)]
     enemy_right = True
 
+    # Defense
     defense: List[pg.Surface] = [
         pg.image.load("assets/images/defense/1.png"),
         pg.image.load("assets/images/defense/2.png"),
@@ -69,28 +80,44 @@ def main() -> None:
     ]  # (x, y, frame)
     defense_key = 0
 
+    # Bullet
+    bullet: pg.Surface = pg.image.load("assets/images/bullet.png")
+    bullets_pos: List[pg.Vector2] = list()
+
     while running:
         delta = clock.tick(60) / 1000
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running = False
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                
+                bullets_pos.append(player_pos.copy())
 
         display.fill((0, 0, 0))
 
         player_key = animate(player_key, len(player), 0.1)
 
+        # Enemy 1 render
         for pos in enemy1_pos:
             display.blit(enemy1, get_rect(enemy1, [pos[0], enemy_y[0]]))
 
+        # Enemy 2 render
         for pos in enemy2_pos:
             display.blit(enemy2, get_rect(enemy2, [pos[0], enemy_y[1]]))
 
+        # Defence render
         for pos in defense_pos:
             display.blit(defense[defense_key], get_rect(defense[defense_key], pos[:2]))
 
+        # Bullet render
+        for pos in bullets_pos:
+            display.blit(bullet, get_rect(bullet, pos))
+
+        # Player render
         display.blit(
             player[int(player_key)], get_rect(player[int(player_key)], player_pos)
         )
+
         if enemy1_pos[0][0] <= enemy1.size[0] // 2:
             enemy_right = True
             for i in range(len(enemy_y)):
@@ -102,6 +129,7 @@ def main() -> None:
 
         enemy_dir = ENEMY_SPEED if enemy_right else -ENEMY_SPEED
 
+        bullet_movement(bullets_pos, delta)
         enemy_movement(enemy1_pos, delta, enemy_dir)
         enemy_movement(enemy2_pos, delta, enemy_dir)
         player_movement(player_pos, delta, player[int(player_key)])
