@@ -44,6 +44,7 @@ def player_movement(pos: pg.Vector2, delta: float, player: pg.Surface) -> None:
 
 
 def main() -> None:
+    pg.display.set_caption("Space invaders")
     screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     display = pg.Surface((DISPLAY_WIDTH, DISPLAY_HEIGHT))
     clock = pg.Clock()
